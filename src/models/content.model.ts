@@ -16,13 +16,14 @@ const contentSchema = new mongoose.Schema({
         type : String,
         required : true
     },
-    tags : {
+    tags : [{
         type : mongoose.Types.ObjectId,
         ref : "tag"
-    },
+    }],
     createdBy : {
         type : mongoose.Types.ObjectId,
-        ref :  "user"
+        ref :  "user",
+        required : true
     }
 })
 
