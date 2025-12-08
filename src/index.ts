@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken"
 
 const app = express()
 
-app.get("/" , (req, res) =>{
+app.post("/" , (req, res) =>{
 
 })
 

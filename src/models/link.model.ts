@@ -10,8 +10,4 @@ const linkSchema = new mongoose.Schema({
     }
 })
 
-const LinkModel = mongoose.model("link", linkSchema)
-
-module.exports = {
-    LinkModel : LinkModel
-}
+export const LinkModel = mongoose.model("link", linkSchema)

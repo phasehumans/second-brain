@@ -9,8 +9,5 @@ const tagSchema = new mongoose.Schema({
 
 })
 
-const TagModel = mongoose.model("tag", tagSchema)
+export const TagModel = mongoose.model("tag", tagSchema)
 
-module.exports = {
-    TagModel : TagModel
-}

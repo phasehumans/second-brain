@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+const contentTypes = ["image", "video", "article", "audio"]
+
 const contentSchema = new mongoose.Schema({
     link : {
         type : String,
@@ -7,6 +9,7 @@ const contentSchema = new mongoose.Schema({
     },
     type : {
         type : String,
+        enum : contentTypes,
         required : true
     }, 
     title : {
@@ -23,8 +26,4 @@ const contentSchema = new mongoose.Schema({
     }
 })
 
-const ContentModel = mongoose.model("content", contentSchema)
-
-module.exports = {
-    ContentModel : ContentModel
-}
+export const ContentModel = mongoose.model("content", contentSchema)
