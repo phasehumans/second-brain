@@ -110,8 +110,8 @@ app.post('/api/v1/signin', async(req, res) =>{
 
 })
 
-app.post('/api/v1/content', authMiddleware, async(req, res) => {
-    const contentTypes = ["tweet", "video", "article"]
+app.post('/api/v1/content', authMiddleware, async(req, res) =>{
+    const contentTypes = ["image", "video", "article", "audio"]
     const contentSchema = z.object({
         link : z.string().url(),
         type: z.enum(contentTypes as [string, ...string[]]),
@@ -149,11 +149,115 @@ app.post('/api/v1/content', authMiddleware, async(req, res) => {
             message : "content uploaded"
         })
     } catch (error) {
-        return res.status(503).json({
+        return res.status(500).json({
             message : "server error"
         })
     }
 
+})
+
+app.get('/api/v1/content', authMiddleware, async(req, res) => {
+    //@ts-ignore
+    const createdBy = req.userId
+
+    try {
+        const content = await ContentModel.find({
+            createdBy : createdBy
+        })
+    
+        return res.status(200).json({
+            content : content
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message : "server error"
+        })
+    }
+
+
+})
+
+app.delete('/api/v1/content', authMiddleware, async(req, res) => {
+    //@ts-ignore
+    const createdBy = req.userId
+    const contentId = req.body.contentId
+
+    if(!mongoose.Types.ObjectId.isValid(contentId)){
+        return res.status(400).json({
+            message : "invalid content id"
+        })
+    }
+
+    try {
+        const result = await ContentModel.deleteOne({
+            createdBy : createdBy,
+            _id : contentId
+        })
+
+        if(result.deletedCount === 0){
+            return res.status(404).json({
+                message : "content not found"
+            })
+        }
+    } catch (error) {
+        return res.status(500).json({
+            message : "server error"
+        })
+    }
+
+})
+
+app.post('/api/v1/brain/share', authMiddleware, async(req, res) => {
+    //@ts-ignore
+    const userId = req.userId
+    
+    try {
+        const { LinkModel } = await import('./models/link.model.js')
+        const shareHash = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+        
+        await LinkModel.create({
+            hash: shareHash,
+            userId: userId
+        })
+        
+        return res.status(201).json({
+            shareLink: `/api/v1/brain/${shareHash}`
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: "failed to create share link"
+        })
+    }
+})
+
+app.get('/api/v1/brain/:sharelink', async(req, res) => {
+    const sharelink = req.params.sharelink
+    
+    try {
+        const { LinkModel } = await import('./models/link.model.js')
+        const link = await LinkModel.findOne({
+            hash: sharelink
+        })
+        
+        if(!link){
+            return res.status(404).json({
+                message: "share link not found"
+            })
+        }
+        
+        const userId = link.userId as unknown as mongoose.Types.ObjectId
+        const content = await ContentModel.find({
+            createdBy: userId
+        })
+        
+        return res.status(200).json({
+            content: content
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: "failed to fetch shared brain"
+        })
+    }
 })
 
 const PORT = process.env.PORT || 4000

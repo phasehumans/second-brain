@@ -15,7 +15,7 @@ export const authMiddleware = (req: Request, res: Response, next :NextFunction) 
     
         if(decoded){
             //@ts-ignore
-            req.userId = decoded.id
+            req.userId = (decoded as any).userId
             next()
         }
     } catch (error) {
