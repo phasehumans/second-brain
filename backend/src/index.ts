@@ -121,7 +121,7 @@ app.post('/api/v1/content', authMiddleware, async(req, res) => {
         ).optional()
     })
 
-    const ParseData = contentSchema.safeParse(contentSchema)
+    const ParseData = contentSchema.safeParse(req.body)
 
     if(!ParseData.success){
         return res.status(403).json({
@@ -132,19 +132,27 @@ app.post('/api/v1/content', authMiddleware, async(req, res) => {
     const link = ParseData.data.link
     const type = ParseData.data.type
     const title = ParseData.data.title
-    const tags = ParseData.data.tags
+    const tags = ParseData.data.tags?.map(tag => new mongoose.Types.ObjectId(tag)) || []
     //@ts-ignore
     const userId = req.userId
 
-    await ContentModel.create({
-        link : link,
-        type : type,
-        title : title,
-        tags : tags,
-        createdBy : userId
-    })
-
-
+    try {
+        await ContentModel.create({
+            link : link,
+            type : type,
+            title : title,
+            tags : tags,
+            createdBy : userId
+        })
+    
+        return res.status(201).json({
+            message : "content uploaded"
+        })
+    } catch (error) {
+        return res.status(503).json({
+            message : "server error"
+        })
+    }
 
 })
 

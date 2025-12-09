@@ -1,8 +1,17 @@
+import { Types } from "mongoose";
 import mongoose from "mongoose";
 
 const contentTypes = ["image", "video", "article", "audio"]
 
-const contentSchema = new mongoose.Schema({
+interface contentDoc{
+    link: string;
+    type: string;
+    title: string;
+    tags: Types.ObjectId[];
+    createdBy: Types.ObjectId;
+}
+
+const contentSchema = new mongoose.Schema<contentDoc>({
     link : {
         type : String,
         required : true
@@ -27,4 +36,4 @@ const contentSchema = new mongoose.Schema({
     }
 })
 
-export const ContentModel = mongoose.model("content", contentSchema)
+export const ContentModel = mongoose.model<contentDoc>("content", contentSchema)
