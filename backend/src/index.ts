@@ -115,7 +115,7 @@ app.post('/api/v1/signin', async(req, res) =>{
 app.post('/api/v1/content', authMiddleware, async(req, res) =>{
     const contentTypes = ["image", "video", "article", "audio"]
     const contentSchema = z.object({
-        link : z.string().url(),
+        link : z.string(),
         type: z.enum(contentTypes as [string, ...string[]]),
         title : z.string(),
         tags: z.array(
