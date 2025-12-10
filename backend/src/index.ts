@@ -7,6 +7,8 @@ import { dbConnect } from "./db.js"
 import mongoose from "mongoose"
 import { authMiddleware } from "./authmiddleware.js"
 import { ContentModel } from "./models/content.model.js"
+import { LinkModel } from "./models/link.model.js"
+
 
 const app = express()
 app.use(express.json())
@@ -210,31 +212,47 @@ app.delete('/api/v1/content', authMiddleware, async(req, res) => {
 app.post('/api/v1/brain/share', authMiddleware, async(req, res) => {
     //@ts-ignore
     const userId = req.userId
-    
-    try {
-        const { LinkModel } = await import('./models/link.model.js')
+    const share = req.body.share
+
+    if (share){
         const shareHash = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-        
-        await LinkModel.create({
-            hash: shareHash,
-            userId: userId
-        })
-        
-        return res.status(201).json({
-            shareLink: `/api/v1/brain/${shareHash}`
-        })
-    } catch (error) {
-        return res.status(500).json({
-            message: "failed to create share link"
-        })
+
+        try {
+            await LinkModel.create({
+                hash: shareHash,
+                userId: userId
+            })
+    
+            return res.status(201).json({
+                shareLink: `/api/v1/brain/${shareHash}`
+            })
+        } catch (error) {
+            return res.status(500).json({
+                message : "server error"
+            })
+        }
+    }else{
+        try {
+            await LinkModel.deleteOne({
+                userId: userId
+            })
+    
+            return res.status(201).json({
+                message : "sharelink deleted"
+            })
+        } catch (error) {
+            return res.status(500).json({
+                message : "server error"
+            })
+        }
     }
+    
 })
 
 app.get('/api/v1/brain/:sharelink', async(req, res) => {
     const sharelink = req.params.sharelink
     
     try {
-        const { LinkModel } = await import('./models/link.model.js')
         const link = await LinkModel.findOne({
             hash: sharelink
         })
@@ -244,10 +262,9 @@ app.get('/api/v1/brain/:sharelink', async(req, res) => {
                 message: "share link not found"
             })
         }
-        
-        const userId = link.userId as unknown as mongoose.Types.ObjectId
+
         const content = await ContentModel.find({
-            createdBy: userId
+            createdBy: link.userId as unknown as mongoose.Types.ObjectId
         })
         
         return res.status(200).json({
